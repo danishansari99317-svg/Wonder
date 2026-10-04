@@ -1,0 +1,6 @@
+{
+  "name": "WonderMC Store",
+  "description": "Buy ranks, perks, coins and crate keys for the WonderMC Minecraft server.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
