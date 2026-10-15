@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { useCart } from '../context/CartContext';
+import React, { useState, useEffect } from 'react';
+import { useCart, MinecraftEdition, formatIgnForEdition } from '../context/CartContext';
 import { useToast } from '../context/ToastContext';
 import { STORE_CONFIG, formatINR } from '../data/storeData';
 import { X, Trash2, Plus, Minus, Tag, ArrowRight, ShoppingBag, ShieldCheck } from 'lucide-react';
+import { EditionSelector } from './EditionSelector';
 
 export const CartDrawer: React.FC = () => {
   const {
@@ -18,6 +19,8 @@ export const CartDrawer: React.FC = () => {
     finalTotal,
     username,
     setUsername,
+    edition,
+    setEdition,
     couponCode,
     couponPercent,
     applyCoupon,
@@ -30,6 +33,10 @@ export const CartDrawer: React.FC = () => {
   const [couponInput, setCouponInput] = useState('');
   const [userIgn, setUserIgn] = useState(username);
 
+  useEffect(() => {
+    setUserIgn(username);
+  }, [username]);
+
   if (!isCartOpen) return null;
 
   const handleApplyCoupon = (e: React.FormEvent) => {
@@ -39,12 +46,26 @@ export const CartDrawer: React.FC = () => {
     }
   };
 
+  const handleEditionChange = (newEd: MinecraftEdition) => {
+    setEdition(newEd);
+    if (newEd === 'bedrock') {
+      setUserIgn((prev) => {
+        const trimmed = (prev || username || '').trim();
+        if (!trimmed) return '.';
+        return trimmed.startsWith('.') ? trimmed : `.${trimmed.replace(/^\.+/, '')}`;
+      });
+    } else {
+      setUserIgn((prev) => (prev || username || '').replace(/^\.+/, ''));
+    }
+  };
+
   const handleProceedToUpi = () => {
-    const cleanIgn = (userIgn || username).trim();
-    if (!cleanIgn) {
+    const raw = (userIgn || username).trim();
+    if (!raw || raw === '.') {
       error('Please enter your Minecraft In-Game Name (IGN) before checking out!');
       return;
     }
+    const cleanIgn = formatIgnForEdition(raw, edition);
     setUsername(cleanIgn);
     setDirectBuyItem(null); // Full cart checkout
     setIsCartOpen(false);
@@ -176,22 +197,50 @@ export const CartDrawer: React.FC = () => {
           {/* Checkout Footer & Summary */}
           {items.length > 0 && (
             <div className="border-t border-border bg-surface-deep p-5 space-y-4">
-              {/* Minecraft IGN Input */}
-              <div>
-                <label className="block text-xs font-bold text-muted-foreground mb-1.5">
-                  Minecraft In-Game Name (IGN) <span className="text-destructive">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={userIgn}
-                  onChange={(e) => {
-                    setUserIgn(e.target.value);
-                    setUsername(e.target.value);
-                  }}
-                  placeholder="Enter your Minecraft username"
-                  className="w-full rounded-xl border border-border bg-surface px-3.5 py-2 text-xs text-foreground outline-none focus:border-accent font-medium placeholder:text-muted-foreground"
-                />
+              {/* Minecraft Edition & IGN Input */}
+              <div className="space-y-2 p-3 rounded-2xl border border-border/80 bg-surface/50">
+                <div className="flex items-center justify-between gap-2">
+                  <label className="block text-xs font-black uppercase tracking-wider text-foreground font-display">
+                    Minecraft IGN <span className="text-destructive">*</span>
+                  </label>
+                  <EditionSelector
+                    size="sm"
+                    edition={edition}
+                    onChange={handleEditionChange}
+                  />
+                </div>
+
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    value={userIgn}
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      if (edition === 'bedrock' && val && !val.startsWith('.')) {
+                        val = `.${val.replace(/^\.+/, '')}`;
+                      }
+                      setUserIgn(val);
+                      setUsername(val);
+                    }}
+                    placeholder={edition === 'bedrock' ? '.BedrockPlayerName' : 'JavaPlayerName'}
+                    className="w-full rounded-xl border border-border bg-surface px-3.5 py-2 text-xs text-foreground outline-none focus:border-accent font-mono font-semibold placeholder:text-muted-foreground"
+                  />
+                </div>
+
+                <p className="text-[10.5px] leading-tight font-medium">
+                  {edition === 'bedrock' ? (
+                    <span className="text-emerald-400 flex items-center gap-1">
+                      <span>📱</span>
+                      <span>Bedrock Edition: Prefix <strong>'.'</strong> is automatically added to your IGN.</span>
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground flex items-center gap-1">
+                      <span>☕</span>
+                      <span>Java Edition: Standard PC username (no '.' prefix needed).</span>
+                    </span>
+                  )}
+                </p>
               </div>
 
               {/* Coupon Code Input */}
@@ -271,7 +320,7 @@ export const CartDrawer: React.FC = () => {
 
                 {STORE_CONFIG.sale.enabled && saleDiscount > 0 && (
                   <div className="flex justify-between text-success">
-                    <span>Summer Sale ({STORE_CONFIG.sale.percent}% OFF):</span>
+                    <span>🎃 Halloween Sale ({STORE_CONFIG.sale.percent}% OFF):</span>
                     <span className="font-mono">-{formatINR(saleDiscount)}</span>
                   </div>
                 )}

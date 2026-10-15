@@ -4,6 +4,18 @@ import { STORE_CONFIG, VALID_COUPONS, INITIAL_COUPONS, formatINR } from '../data
 import { useSale } from './SaleContext';
 import { useToast } from './ToastContext';
 
+export type MinecraftEdition = 'java' | 'bedrock';
+
+export const formatIgnForEdition = (name: string, ed: MinecraftEdition): string => {
+  const trimmed = name.trim();
+  if (!trimmed) return '';
+  if (ed === 'bedrock') {
+    return trimmed.startsWith('.') ? trimmed : `.${trimmed.replace(/^\.+/, '')}`;
+  } else {
+    return trimmed.replace(/^\.+/, '');
+  }
+};
+
 interface CartContextType {
   items: CartLine[];
   addItem: (item: StoreItem, qty?: number) => void;
@@ -17,6 +29,8 @@ interface CartContextType {
   finalTotal: number;
   username: string;
   setUsername: (name: string) => void;
+  edition: MinecraftEdition;
+  setEdition: (edition: MinecraftEdition) => void;
   couponCode: string;
   couponPercent: number;
   applyCoupon: (code: string) => boolean;
@@ -34,6 +48,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const CART_STORAGE_KEY = 'wondermc_cart_v1';
 const USERNAME_STORAGE_KEY = 'wondermc_username_v1';
+const EDITION_STORAGE_KEY = 'wondermc_edition_v1';
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { success, error } = useToast();
@@ -56,6 +71,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   });
 
+  const [edition, setEditionState] = useState<MinecraftEdition>(() => {
+    try {
+      const saved = localStorage.getItem(EDITION_STORAGE_KEY);
+      if (saved === 'bedrock' || saved === 'java') return saved;
+      // If saved username starts with dot, default to bedrock
+      const savedName = localStorage.getItem(USERNAME_STORAGE_KEY) || '';
+      return savedName.startsWith('.') ? 'bedrock' : 'java';
+    } catch {
+      return 'java';
+    }
+  });
+
   const [couponCode, setCouponCode] = useState<string>('');
   const [couponPercent, setCouponPercent] = useState<number>(0);
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
@@ -71,15 +98,38 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [items]);
 
-  const setUsername = useCallback((name: string) => {
-    const trimmed = name.trim();
-    setUsernameState(trimmed);
+  const setEdition = useCallback((newEdition: MinecraftEdition) => {
+    setEditionState(newEdition);
     try {
-      localStorage.setItem(USERNAME_STORAGE_KEY, trimmed);
+      localStorage.setItem(EDITION_STORAGE_KEY, newEdition);
     } catch {
       // ignore
     }
+
+    // Automatically update username format when switching editions
+    setUsernameState((prev) => {
+      if (!prev) return prev;
+      const formatted = formatIgnForEdition(prev, newEdition);
+      try {
+        localStorage.setItem(USERNAME_STORAGE_KEY, formatted);
+      } catch {
+        // ignore
+      }
+      return formatted;
+    });
   }, []);
+
+  const setUsername = useCallback((name: string) => {
+    const trimmed = name.trim();
+    // Do not force dot if empty string
+    const formatted = trimmed ? formatIgnForEdition(trimmed, edition) : '';
+    setUsernameState(formatted);
+    try {
+      localStorage.setItem(USERNAME_STORAGE_KEY, formatted);
+    } catch {
+      // ignore
+    }
+  }, [edition]);
 
   const triggerCartBounce = () => {
     window.dispatchEvent(new CustomEvent('wondermc:cart-add'));
@@ -251,6 +301,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         finalTotal,
         username,
         setUsername,
+        edition,
+        setEdition,
         couponCode,
         couponPercent,
         applyCoupon,

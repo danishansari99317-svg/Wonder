@@ -11,6 +11,7 @@ export interface PaymentWebhookData {
   gamemode?: string;
   serverIp?: string;
   paymentMethod?: string;
+  edition?: string;
 }
 
 export interface TicketWebhookData {
@@ -176,12 +177,12 @@ export async function sendPaymentDiscordNotification(
         description: `A player has completed checkout on **${config.brand} Store** and submitted their UPI transaction reference for verification.`,
         color: 0xf59e0b, // Amber Gold
         thumbnail: {
-          url: `https://mc-heads.net/body/${encodeURIComponent(cleanIgn)}/right`,
+          url: `https://mc-heads.net/body/${encodeURIComponent(cleanIgn.replace(/^\.+/, ''))}/right`,
         },
         fields: [
           {
             name: '👤 Minecraft IGN',
-            value: `**\`${cleanIgn}\`**\n[View Skin](https://mc-heads.net/avatar/${encodeURIComponent(cleanIgn)}/128)`,
+            value: `**\`${cleanIgn}\`** (${data.edition === 'bedrock' || cleanIgn.startsWith('.') ? '📱 Bedrock Edition' : '☕ Java Edition'})\n[View Skin](https://mc-heads.net/avatar/${encodeURIComponent(cleanIgn.replace(/^\.+/, ''))}/128)`,
             inline: true,
           },
           {

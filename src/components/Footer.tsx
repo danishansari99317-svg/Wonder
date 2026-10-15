@@ -33,12 +33,12 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegal, onOpenAdmin }) => {
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <img
-                src="/wondermc-logo.png"
-                alt="Wonder MC Logo"
-                className="h-9 w-auto object-contain drop-shadow-[0_4px_12px_rgba(0,195,255,0.25)]"
+                src="/img/banner.webp"
+                alt="WONDER MC Logo"
+                className="h-9 w-auto object-contain rounded-lg border border-[#050008] drop-shadow-[0_4px_12px_rgba(255,122,26,0.35)]"
               />
-              <span className="text-xl font-black text-foreground font-display tracking-tight">
-                {config.brand}
+              <span className="spooky-brand text-2xl font-normal tracking-wide">
+                🎃 {config.brand}
               </span>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
@@ -153,7 +153,9 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegal, onOpenAdmin }) => {
 
         {/* Bottom copyright & policies */}
         <div className="flex flex-wrap items-center justify-between gap-4 pt-6 text-xs text-muted-foreground">
-          <div>{config.copyright}</div>
+          <div>
+            &copy; {new Date().getFullYear()} WONDER MC &middot; Happy Halloween 🎃 &middot; Not affiliated with Mojang or Microsoft
+          </div>
 
           <div className="flex flex-wrap items-center gap-4 font-semibold">
             <button

@@ -32,9 +32,9 @@ export const STORE_CONFIG = {
   youtubeUrl: 'https://www.youtube.com/@wondermc',
   copyright: '© 2026 WonderMC Network. All Rights Reserved.',
   sale: {
-    pill: 'SUMMER SALE',
+    pill: '🎃 HALLOWEEN SALE',
     highlight: '30% OFF',
-    text: '30% off on every product!',
+    text: 'Spooky Halloween discounts on all ranks, keys & coins!',
     percent: 30,
     enabled: true,
   } as StoreSaleConfig,
@@ -389,16 +389,40 @@ export const INITIAL_VOTE_LINKS: VoteLink[] = [
 ];
 
 export const RECENT_PURCHASES_TICKER = [
-  '🔥 Indian Best Minecraft Server Wonder MC • play.wondermc.fun',
-  '⚡ Indian Best Minecraft Server Wonder MC • play.wondermc.fun',
-  '👑 Indian Best Minecraft Server Wonder MC • play.wondermc.fun',
-  '🎮 Indian Best Minecraft Server Wonder MC • play.wondermc.fun',
+  '🎃 Happy Halloween from WonderMC! • Use Code SPOOKY30 for 30% OFF • play.wondermc.fun',
+  '👻 Spooky Halloween Festival Live on WonderMC Lifesteal • play.wondermc.fun',
+  '🦇 Trick or Treat! Spooky Ranks & Halloween Keys Available Now • play.wondermc.fun',
+  '🔥 WonderMC Minecraft Network • India\'s #1 Lifesteal Server • play.wondermc.fun',
 ];
 
 // Deprecated legacy map - coupons are strictly validated against dynamic coupons state / localStorage
 export const VALID_COUPONS: Record<string, number> = {};
 
 export const INITIAL_COUPONS: Coupon[] = [
+  {
+    id: 'coup-spooky',
+    code: 'SPOOKY30',
+    category: 'normal',
+    discountType: 'percentage',
+    discountValue: 30,
+    expiryDate: '2026-11-15',
+    usageLimit: 500,
+    usedCount: 28,
+    enabled: true,
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 'coup-halloween',
+    code: 'HALLOWEEN',
+    category: 'normal',
+    discountType: 'percentage',
+    discountValue: 25,
+    expiryDate: '2026-11-15',
+    usageLimit: 300,
+    usedCount: 15,
+    enabled: true,
+    createdAt: new Date().toISOString(),
+  },
   {
     id: 'coup-1',
     code: 'SUMMER30',

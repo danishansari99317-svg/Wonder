@@ -101,7 +101,7 @@ export const StoreView: React.FC<StoreViewProps> = ({
               <div>
                 <div className="flex items-center gap-2">
                   <h3 className="text-base font-black tracking-tight text-foreground font-display">
-                    Active Server Promo Coupons
+                    🎃 Spooky Server Promo Coupons 🦇
                   </h3>
                   <span className="rounded-full bg-accent/20 text-accent border border-accent/40 px-2.5 py-0.5 text-[10px] font-extrabold uppercase animate-pulse">
                     ⚡ {activePublicCoupons.length} Available

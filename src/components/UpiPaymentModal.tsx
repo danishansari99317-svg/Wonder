@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
-import { useCart } from '../context/CartContext';
+import { useCart, MinecraftEdition, formatIgnForEdition } from '../context/CartContext';
 import { useSale } from '../context/SaleContext';
 import { useStoreConfig } from '../context/StoreConfigContext';
 import { useTickets } from '../context/TicketContext';
 import { useToast } from '../context/ToastContext';
 import { formatINR } from '../data/storeData';
 import { sendPaymentDiscordNotification } from '../utils/discordWebhook';
+import { EditionSelector } from './EditionSelector';
 import { X, Copy, Check, CheckCircle2, ExternalLink, QrCode, ShieldCheck, AlertCircle, MessageSquare, Upload, Image as ImageIcon, FileCheck, Trash2, Link as LinkIcon } from 'lucide-react';
 
 export const UpiPaymentModal: React.FC = () => {
@@ -19,6 +20,8 @@ export const UpiPaymentModal: React.FC = () => {
     finalTotal,
     username,
     setUsername,
+    edition,
+    setEdition,
     clearCart,
   } = useCart();
   const { getItemPricing } = useSale();
@@ -42,6 +45,26 @@ export const UpiPaymentModal: React.FC = () => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [submittedUtr, setSubmittedUtr] = useState('');
   const [submittedScreenshot, setSubmittedScreenshot] = useState<string>('');
+
+  // Sync ign whenever modal opens or username changes
+  useEffect(() => {
+    if (isUpiModalOpen) {
+      setIgn(username);
+    }
+  }, [username, isUpiModalOpen]);
+
+  const handleEditionChange = (newEd: MinecraftEdition) => {
+    setEdition(newEd);
+    if (newEd === 'bedrock') {
+      setIgn((prev) => {
+        const trimmed = (prev || username || '').trim();
+        if (!trimmed) return '.';
+        return trimmed.startsWith('.') ? trimmed : `.${trimmed.replace(/^\.+/, '')}`;
+      });
+    } else {
+      setIgn((prev) => (prev || username || '').replace(/^\.+/, ''));
+    }
+  };
 
   // Calculate checkout details
   const isDirect = Boolean(directBuyItem);
@@ -136,14 +159,16 @@ export const UpiPaymentModal: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanIgn = ign.trim();
+    const rawIgn = ign.trim();
     const cleanUtr = utrNumber.trim();
     const cleanScreenshot = screenshotUrl.trim();
 
-    if (!cleanIgn) {
+    if (!rawIgn || rawIgn === '.') {
       error('Please enter your Minecraft In-Game Name (IGN)');
       return;
     }
+
+    const cleanIgn = formatIgnForEdition(rawIgn, edition);
 
     if (!cleanUtr || cleanUtr.length < 10) {
       error('Please enter a valid 12-digit UPI Reference / UTR Number');
@@ -151,7 +176,7 @@ export const UpiPaymentModal: React.FC = () => {
     }
 
     setIsSubmitting(true);
-    // Save IGN
+    // Save IGN and edition
     setUsername(cleanIgn);
 
     setTimeout(() => {
@@ -168,7 +193,7 @@ export const UpiPaymentModal: React.FC = () => {
           contact: discordTag.trim(),
           category: 'Payment / Store Issue',
           subject: `UPI Payment ₹${totalAmount} · UTR: ${cleanUtr}`,
-          message: `Order Item(s): ${orderDescription}\nTotal Paid: ₹${totalAmount}\nUTR/Transaction ID: ${cleanUtr}\nMinecraft IGN: ${cleanIgn}${discordTag.trim() ? `\nDiscord Tag: ${discordTag.trim()}` : ''}${cleanScreenshot ? '\n[Payment Receipt Screenshot Attached]' : ''}`,
+          message: `Order Item(s): ${orderDescription}\nTotal Paid: ₹${totalAmount}\nUTR/Transaction ID: ${cleanUtr}\nMinecraft IGN: ${cleanIgn} (${edition === 'bedrock' ? 'Bedrock Edition' : 'Java Edition'})${discordTag.trim() ? `\nDiscord Tag: ${discordTag.trim()}` : ''}${cleanScreenshot ? '\n[Payment Receipt Screenshot Attached]' : ''}`,
           screenshotUrl: cleanScreenshot || undefined,
           priority: 'high',
         });
@@ -190,6 +215,7 @@ export const UpiPaymentModal: React.FC = () => {
           gamemode: config.serverName,
           serverIp: config.serverIp,
           paymentMethod: `UPI QR (${config.upiId})`,
+          edition: edition,
         },
         config
       ).catch((err) => {
@@ -210,33 +236,69 @@ export const UpiPaymentModal: React.FC = () => {
     setIsSuccess(false);
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg rounded-2xl border border-border bg-surface p-6 shadow-2xl sm:p-7 my-8">
-        {/* Close Button */}
-        <button
-          onClick={handleClose}
-          className="absolute top-4 right-4 rounded-xl border border-border bg-surface-deep p-2 text-muted-foreground hover:text-foreground hover:border-border-strong transition-colors"
-          aria-label="Close UPI Payment Modal"
-        >
-          <X className="w-5 h-5" />
-        </button>
+  // Close on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isUpiModalOpen) {
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isUpiModalOpen]);
 
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      {/* Clickable Backdrop overlay to close */}
+      <div 
+        className="fixed inset-0 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+        onClick={handleClose}
+        aria-hidden="true"
+        title="Click anywhere outside to close"
+      />
+
+      {/* Floating Viewport Close Button (always visible on screen) */}
+      <button
+        type="button"
+        onClick={handleClose}
+        title="Close payment modal (Esc)"
+        className="fixed top-4 right-4 z-[60] flex items-center gap-1.5 rounded-full border-2 border-red-500/70 bg-[#12051f]/95 px-3.5 py-1.5 text-xs font-black uppercase tracking-wider text-red-200 shadow-2xl backdrop-blur-md hover:bg-red-600 hover:text-white hover:border-red-400 transition-all cursor-pointer active:scale-95"
+        aria-label="Close UPI Payment Modal"
+      >
+        <X className="w-4 h-4 stroke-[2.5]" />
+        <span>Close (Esc)</span>
+      </button>
+
+      {/* Modal Dialog Card */}
+      <div className="relative z-10 w-full max-w-lg rounded-2xl border-2 border-border bg-surface p-5 sm:p-7 shadow-2xl my-8">
         {!isSuccess ? (
           <div>
-            {/* Modal Header */}
-            <div className="flex items-center gap-3 border-b border-border pb-4 mb-5">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/15 text-accent">
-                <QrCode className="w-6 h-6" />
+            {/* Modal Header with prominent Title & Close Button */}
+            <div className="flex items-center justify-between gap-3 border-b border-border pb-4 mb-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/15 text-accent border border-accent/30">
+                  <QrCode className="w-6 h-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black tracking-tight text-foreground font-display">
+                    UPI Instant Payment
+                  </h2>
+                  <p className="text-xs text-muted-foreground">
+                    Scan QR or pay UPI ID via GPay / PhonePe / Paytm
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-xl font-black tracking-tight text-foreground font-display">
-                  UPI Instant Payment
-                </h2>
-                <p className="text-xs text-muted-foreground">
-                  Scan the QR code or pay to the UPI ID via GPay, PhonePe, or Paytm
-                </p>
-              </div>
+
+              {/* Dedicated Header Close Button */}
+              <button
+                type="button"
+                onClick={handleClose}
+                className="flex items-center gap-1.5 rounded-xl border border-red-500/50 bg-red-950/60 px-3 py-1.5 text-xs font-black uppercase text-red-300 hover:bg-red-600 hover:text-white hover:border-red-500 transition-all cursor-pointer shadow-sm shrink-0"
+                aria-label="Close UPI Payment Modal"
+              >
+                <X className="w-4 h-4 stroke-[2.5]" />
+                <span className="hidden sm:inline">Close</span>
+              </button>
             </div>
 
             {/* Total Amount Card */}
@@ -253,7 +315,7 @@ export const UpiPaymentModal: React.FC = () => {
             </div>
 
             {/* QR Code Presentation */}
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-border bg-white p-4 shadow-inner mb-5">
+            <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-border bg-white p-4 shadow-inner mb-2.5">
               {qrDataUrl ? (
                 <img
                   src={qrDataUrl}
@@ -265,9 +327,22 @@ export const UpiPaymentModal: React.FC = () => {
                   Generating QR Code...
                 </div>
               )}
-              <span className="mt-2 text-[11px] font-bold text-gray-700 tracking-wide">
+              <span className="mt-2 text-[11px] font-bold text-gray-700 tracking-wide text-center">
                 Scan with any UPI App (GPay / PhonePe / Paytm / BHIM)
               </span>
+            </div>
+
+            {/* Quick cancel payment under QR */}
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground px-1 mb-4">
+              <span>Pay exact ₹{totalAmount} to activate</span>
+              <button
+                type="button"
+                onClick={handleClose}
+                className="text-red-400 hover:text-red-300 font-bold underline cursor-pointer flex items-center gap-1"
+              >
+                <X className="w-3 h-3 stroke-[2.5]" />
+                <span>Cancel / Close</span>
+              </button>
             </div>
 
             {/* Copyable UPI ID */}
@@ -292,18 +367,50 @@ export const UpiPaymentModal: React.FC = () => {
 
             {/* Payment Verification Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold text-muted-foreground mb-1">
-                  Minecraft In-Game Name (IGN) <span className="text-destructive">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={ign}
-                  onChange={(e) => setIgn(e.target.value)}
-                  placeholder="e.g. Steve_Gamer123"
-                  className="w-full rounded-xl border border-border bg-surface-deep px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-accent font-medium placeholder:text-muted-foreground"
-                />
+              {/* Minecraft Edition & IGN Input */}
+              <div className="space-y-2 p-3.5 rounded-2xl border border-border/80 bg-surface/50">
+                <div className="flex items-center justify-between gap-2">
+                  <label className="block text-xs font-black uppercase tracking-wider text-foreground font-display">
+                    Minecraft IGN <span className="text-destructive">*</span>
+                  </label>
+                  <EditionSelector
+                    size="sm"
+                    edition={edition}
+                    onChange={handleEditionChange}
+                  />
+                </div>
+
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    value={ign}
+                    onChange={(e) => {
+                      let val = e.target.value;
+                      if (edition === 'bedrock' && val && !val.startsWith('.')) {
+                        val = `.${val.replace(/^\.+/, '')}`;
+                      }
+                      setIgn(val);
+                      setUsername(val);
+                    }}
+                    placeholder={edition === 'bedrock' ? '.BedrockPlayerName' : 'JavaPlayerName'}
+                    className="w-full rounded-xl border border-border bg-surface-deep px-3.5 py-2.5 text-sm text-foreground outline-none focus:border-accent font-mono font-semibold placeholder:text-muted-foreground"
+                  />
+                </div>
+
+                <p className="text-[11px] leading-tight font-medium">
+                  {edition === 'bedrock' ? (
+                    <span className="text-emerald-400 flex items-center gap-1">
+                      <span>📱</span>
+                      <span>Bedrock Edition: Prefix <strong>'.'</strong> is added automatically for GeyserMC delivery.</span>
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground flex items-center gap-1">
+                      <span>☕</span>
+                      <span>Java Edition: Standard PC Minecraft IGN (without '.' prefix).</span>
+                    </span>
+                  )}
+                </p>
               </div>
 
               <div>
@@ -434,6 +541,16 @@ export const UpiPaymentModal: React.FC = () => {
                   </>
                 )}
               </button>
+
+              {/* Explicit Cancel / Close Button */}
+              <button
+                type="button"
+                onClick={handleClose}
+                className="w-full rounded-xl border border-red-500/40 bg-red-950/30 py-2.5 text-xs font-black uppercase tracking-wider text-red-300 hover:bg-red-950/60 hover:text-white hover:border-red-500 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <X className="w-4 h-4 stroke-[2.5]" />
+                <span>Cancel Payment &amp; Close Window</span>
+              </button>
             </form>
           </div>
         ) : (
@@ -451,9 +568,18 @@ export const UpiPaymentModal: React.FC = () => {
             </p>
 
             <div className="rounded-xl border border-border bg-surface-deep p-4 text-left space-y-2 mb-6">
-              <div className="flex justify-between text-xs">
+              <div className="flex justify-between items-center text-xs">
                 <span className="text-muted-foreground">Minecraft IGN:</span>
-                <strong className="text-foreground">{ign}</strong>
+                <div className="flex items-center gap-1.5">
+                  <strong className="text-foreground font-mono">{ign}</strong>
+                  <span className={`text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase ${
+                    edition === 'bedrock'
+                      ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                      : 'bg-accent/20 text-accent border border-accent/30'
+                  }`}>
+                    {edition === 'bedrock' ? '📱 Bedrock/PE' : '☕ Java'}
+                  </span>
+                </div>
               </div>
               <div className="flex justify-between text-xs">
                 <span className="text-muted-foreground">Transaction UTR:</span>

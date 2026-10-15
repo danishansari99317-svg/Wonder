@@ -15,7 +15,8 @@ export const MinecraftSkinImage: React.FC<MinecraftSkinImageProps> = ({
   className = '',
   alt,
 }) => {
-  const cleanName = (name || 'Steve').trim();
+  // Strip leading dot for Bedrock / Floodgate names (e.g. .Player -> Player) so skin servers can resolve it
+  const cleanName = (name || 'Steve').trim().replace(/^\.+/, '') || 'Steve';
   const [fallbackIndex, setFallbackIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [hasFailedAll, setHasFailedAll] = useState(false);

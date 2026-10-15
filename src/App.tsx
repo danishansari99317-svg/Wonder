@@ -5,6 +5,7 @@ import { SaleProvider } from './context/SaleContext';
 import { CartProvider } from './context/CartContext';
 import { TicketProvider } from './context/TicketContext';
 import { GamingParticles } from './components/GamingParticles';
+import { PumpkinClickEffect } from './components/PumpkinClickEffect';
 import { Header } from './components/Header';
 import { StoreView } from './components/StoreView';
 import { CartDrawer } from './components/CartDrawer';
@@ -273,8 +274,17 @@ function MainStoreContent() {
     try {
       const res = await fetch('/api/state?t=' + Date.now());
       if (!res.ok) return;
-      const data = await res.json();
-      if (!data) return;
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        return; // Guard against dev server HTML fallback during restarts
+      }
+      let data: any;
+      try {
+        data = await res.json();
+      } catch {
+        return;
+      }
+      if (!data || typeof data !== 'object') return;
 
       if (Array.isArray(data.subAdminKeys)) {
         setSubAdminKeys(data.subAdminKeys);
@@ -333,8 +343,8 @@ function MainStoreContent() {
         setRulesCategories(data.rulesCategories);
         try { localStorage.setItem('wondermc_rules_categories_v1', JSON.stringify(data.rulesCategories)); } catch {}
       }
-    } catch (err) {
-      console.error('Failed to sync global state:', err);
+    } catch {
+      // Graceful fallback to cached state, avoid logging unhandled parsing errors
     } finally {
       if (isInitial) {
         setIsLoading(false);
@@ -387,13 +397,12 @@ function MainStoreContent() {
         },
         body: JSON.stringify(partialState),
       });
-      if (!res.ok) {
-        throw new Error(`Server returned status ${res.status}`);
-      }
-      const data = await res.json();
-      return !!data.success;
-    } catch (err) {
-      console.error('Failed to sync changes with server:', err);
+      if (!res.ok) return false;
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) return false;
+      const data = await res.json().catch(() => null);
+      return !!(data && data.success);
+    } catch {
       return false;
     }
   };
@@ -561,6 +570,7 @@ function MainStoreContent() {
     <div className="gaming-background min-h-screen text-foreground relative selection:bg-accent selection:text-accent-foreground font-sans">
       {/* Ambient Minecraft Floating Particles */}
       <GamingParticles />
+      <PumpkinClickEffect />
 
       {/* Header */}
       <Header

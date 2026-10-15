@@ -226,6 +226,13 @@
   ],
   "staffList": [
     {
+      "discord_username": "flamy",
+      "name": "Flamy",
+      "description": "Owner & Network Operations",
+      "role": "Owner",
+      "id": "staff-3"
+    },
+    {
       "name": "noxisalive",
       "id": "staff-1",
       "discord_id": "1390613557145501706",
@@ -239,13 +246,6 @@
       "discord_username": "bethelegend",
       "name": "bethelegend",
       "description": "Owner & Development Management"
-    },
-    {
-      "discord_username": "flamy",
-      "name": "Flamy",
-      "description": "Owner & Network Operations",
-      "role": "Owner",
-      "id": "staff-3"
     },
     {
       "role": "Senior Admin",
@@ -516,6 +516,6 @@
   "testTimestamp": 1791044903763,
   "test_ping": 1791046279775,
   "test_quota_check": 1791047214833,
-  "_lastUpdated": 1791047295093,
+  "_lastUpdated": 1792070366311,
   "test_quota_fixed": 9999
 }

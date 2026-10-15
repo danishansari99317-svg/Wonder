@@ -89,7 +89,12 @@ export const StoreConfigProvider: React.FC<{ children: React.ReactNode }> = ({ c
   // Load config from persistent backend on load and keep live-synchronized
   const fetchConfig = () => {
     fetch('/api/state?t=' + Date.now())
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) return null;
+        const ct = res.headers.get('content-type') || '';
+        if (!ct.includes('application/json')) return null;
+        return res.json().catch(() => null);
+      })
       .then((data) => {
         if (data && data.config) {
           const mergedConfig = { ...DEFAULT_STORE_CONFIG, ...data.config };

@@ -47,7 +47,12 @@ export const TicketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Fetch tickets from database on load and keep synchronized
   const fetchTickets = () => {
     fetch('/api/state?t=' + Date.now())
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) return null;
+        const ct = res.headers.get('content-type') || '';
+        if (!ct.includes('application/json')) return null;
+        return res.json().catch(() => null);
+      })
       .then((data) => {
         if (data && Array.isArray(data.tickets)) {
           setTickets(data.tickets);

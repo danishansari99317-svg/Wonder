@@ -2125,25 +2125,39 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
         </div>
 
         {/* Mobile Quick Dropdown Switcher (visible on mobile < sm) */}
-        <div className="block sm:hidden px-3.5 py-2 bg-surface-deep border-b border-border/80 shrink-0">
-          <label htmlFor="admin-mobile-tab-select" className="sr-only">Select Tab</label>
-          <select
-            id="admin-mobile-tab-select"
-            value={activeTab}
-            onChange={(e) => setActiveTab(e.target.value as TabType)}
-            className="w-full rounded-xl border border-border bg-surface px-3 py-2 text-xs font-black uppercase text-foreground outline-none focus:border-accent"
-          >
-            {allowedTabs.includes('staff') && <option value="staff">👥 Staff Team ({staffList.length})</option>}
-            {allowedTabs.includes('supporters') && <option value="supporters">🏆 Top Supporters ({leaderboard.length})</option>}
-            {allowedTabs.includes('products') && <option value="products">📦 Products &amp; Catalog ({items.length})</option>}
-            {allowedTabs.includes('discounts') && <option value="discounts">🎟️ Coupons &amp; Discounts {saleConfig.enabled ? '⚡' : ''}</option>}
-            {allowedTabs.includes('tickets') && <option value="tickets">💬 Support Tickets ({tickets.length}) {openTicketsCount > 0 ? `(${openTicketsCount} Open)` : ''}</option>}
-            {allowedTabs.includes('updates') && <option value="updates">📢 Updates &amp; News ({updatesList.length})</option>}
-            {allowedTabs.includes('vote') && <option value="vote">🗳️ Vote Sites ({voteLinks.length})</option>}
-            {allowedTabs.includes('payment') && <option value="payment">💳 UPI &amp; Payments</option>}
-            {allowedTabs.includes('passwords') && <option value="passwords">🔑 Sub-Admin Passwords ({subAdminKeysList.length})</option>}
-            {allowedTabs.includes('settings') && <option value="settings">⚙️ Server &amp; Webhooks</option>}
-          </select>
+        <div className="block sm:hidden px-4 py-3 bg-gradient-to-r from-surface-deep via-surface to-surface-deep border-b border-border shadow-md shrink-0">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] font-black uppercase tracking-wider text-accent flex items-center gap-1.5">
+              <Sliders className="w-3.5 h-3.5" />
+              <span>Select Admin Section</span>
+            </span>
+            <span className="text-[10px] font-bold text-muted-foreground">
+              {allowedTabs.length} Tabs Available
+            </span>
+          </div>
+          <div className="relative">
+            <label htmlFor="admin-mobile-tab-select" className="sr-only">Select Tab</label>
+            <select
+              id="admin-mobile-tab-select"
+              value={activeTab}
+              onChange={(e) => setActiveTab(e.target.value as TabType)}
+              className="w-full rounded-xl border-2 border-accent/40 bg-surface-deep px-3.5 py-3 text-xs font-black uppercase text-foreground outline-none focus:border-accent shadow-lg tracking-wider cursor-pointer"
+            >
+              {allowedTabs.includes('staff') && <option value="staff">👥 Staff Team ({staffList.length})</option>}
+              {allowedTabs.includes('supporters') && <option value="supporters">🏆 Top Supporters ({leaderboard.length})</option>}
+              {allowedTabs.includes('products') && <option value="products">📦 Products &amp; Catalog ({items.length})</option>}
+              {allowedTabs.includes('discounts') && <option value="discounts">🎟️ Coupons &amp; Discounts {saleConfig.enabled ? '⚡' : ''}</option>}
+              {allowedTabs.includes('tickets') && <option value="tickets">💬 Support Tickets ({tickets.length}) {openTicketsCount > 0 ? `(${openTicketsCount} Open)` : ''}</option>}
+              {allowedTabs.includes('updates') && <option value="updates">📢 Updates &amp; News ({updatesList.length})</option>}
+              {allowedTabs.includes('vote') && <option value="vote">🗳️ Vote Sites ({voteLinks.length})</option>}
+              {allowedTabs.includes('payment') && <option value="payment">💳 UPI &amp; Payments</option>}
+              {allowedTabs.includes('passwords') && <option value="passwords">🔑 Sub-Admin Passwords ({subAdminKeysList.length})</option>}
+              {allowedTabs.includes('settings') && <option value="settings">⚙️ Server &amp; Webhooks</option>}
+              {allowedTabs.includes('guide') && <option value="guide">🧭 Connection Guide</option>}
+              {allowedTabs.includes('rules') && <option value="rules">⚖️ Server Rules</option>}
+              {allowedTabs.includes('activity_log') && <option value="activity_log">📋 Activity Audit Log</option>}
+            </select>
+          </div>
         </div>
 
         {/* Navigation Tabs Bar (Horizontal Scrollable on all viewports) */}
@@ -2661,9 +2675,9 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                     return (
                       <div
                         key={st.id}
-                        className="flex items-center justify-between gap-3 p-3 rounded-xl border border-border bg-surface-deep/80 hover:border-border-strong transition-all"
+                        className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 rounded-xl border border-border bg-surface-deep/80 hover:border-border-strong transition-all"
                       >
-                        <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex items-center gap-3.5 min-w-0">
                           <div className="h-12 w-8 shrink-0 flex items-center justify-center">
                             <MinecraftSkinImage
                               name={st.name}
@@ -2673,8 +2687,8 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                               alt={`${st.name}'s skin`}
                             />
                           </div>
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2 mb-1">
                               <span className="font-extrabold text-sm text-foreground truncate">
                                 {st.name}
                               </span>
@@ -2718,13 +2732,13 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-1 shrink-0">
+                        <div className="flex items-center gap-2 flex-wrap shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-border/60">
                           {/* Reordering within same Role Tier */}
                           <button
                             type="button"
                             onClick={() => handleMoveStaffUp(st)}
                             disabled={!canUp}
-                            className="p-1.5 rounded-lg border border-border bg-surface text-muted-foreground hover:text-amber-300 hover:border-amber-400/50 disabled:opacity-20 disabled:hover:text-muted-foreground disabled:hover:border-border transition-colors cursor-pointer disabled:cursor-not-allowed"
+                            className="p-2 rounded-lg border border-border bg-surface text-muted-foreground hover:text-amber-300 hover:border-amber-400/50 disabled:opacity-20 disabled:hover:text-muted-foreground disabled:hover:border-border transition-colors cursor-pointer disabled:cursor-not-allowed"
                             title={
                               canUp
                                 ? `Move ${st.name} UP within ${st.role} rank`
@@ -2738,7 +2752,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                             type="button"
                             onClick={() => handleMoveStaffDown(st)}
                             disabled={!canDown}
-                            className="p-1.5 rounded-lg border border-border bg-surface text-muted-foreground hover:text-amber-300 hover:border-amber-400/50 disabled:opacity-20 disabled:hover:text-muted-foreground disabled:hover:border-border transition-colors cursor-pointer disabled:cursor-not-allowed"
+                            className="p-2 rounded-lg border border-border bg-surface text-muted-foreground hover:text-amber-300 hover:border-amber-400/50 disabled:opacity-20 disabled:hover:text-muted-foreground disabled:hover:border-border transition-colors cursor-pointer disabled:cursor-not-allowed"
                             title={
                               canDown
                                 ? `Move ${st.name} DOWN within ${st.role} rank`
@@ -2756,7 +2770,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                               handleSaveStaffTeamToWebsite();
                               success(`Staff member "${st.name}" verified and saved on website!`);
                             }}
-                            className="px-2 py-1 rounded-lg bg-accent/15 border border-accent/30 text-[10px] font-extrabold text-accent hover:bg-accent/25 transition-colors flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1.5 rounded-lg bg-accent/15 border border-accent/30 text-xs font-extrabold text-accent hover:bg-accent/25 transition-colors flex items-center gap-1 cursor-pointer"
                             title="Save staff member to website"
                           >
                             <span>💾 Save</span>
@@ -2765,18 +2779,18 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                           <button
                             type="button"
                             onClick={() => handleEditStaff(st)}
-                            className="p-1.5 rounded-lg border border-border bg-surface text-muted-foreground hover:text-accent hover:border-accent transition-colors cursor-pointer"
+                            className="p-2 rounded-lg border border-border bg-surface text-muted-foreground hover:text-accent hover:border-accent transition-colors cursor-pointer"
                             title="Edit staff member"
                           >
-                            <Edit3 className="w-3.5 h-3.5" />
+                            <Edit3 className="w-4 h-4" />
                           </button>
                           <button
                             type="button"
                             onClick={() => handleDeleteStaff(st)}
-                            className="p-1.5 rounded-lg border border-border bg-surface text-muted-foreground hover:text-red-400 hover:border-red-400 transition-colors cursor-pointer"
+                            className="p-2 rounded-lg border border-border bg-surface text-muted-foreground hover:text-red-400 hover:border-red-400 transition-colors cursor-pointer"
                             title="Delete staff member"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
@@ -2978,16 +2992,16 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                       return (
                         <div
                           key={b.id}
-                          className={`flex items-center justify-between gap-3 p-3 rounded-xl border transition-all ${
+                          className={`flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 rounded-xl border transition-all ${
                             isFirst
                               ? 'border-gold/50 bg-gold/5 shadow-sm'
                               : 'border-border bg-surface-deep/80'
                           }`}
                         >
-                          <div className="flex items-center gap-3 min-w-0">
+                          <div className="flex items-center gap-3.5 min-w-0">
                             {/* Rank indicator */}
                             <div
-                              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg font-black text-xs font-display ${
+                              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg font-black text-xs font-display ${
                                 rank === 1
                                   ? 'bg-gold text-lime-foreground'
                                   : rank === 2
@@ -3021,7 +3035,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-3 shrink-0">
+                          <div className="flex flex-wrap items-center justify-between lg:justify-end gap-3 shrink-0 pt-2 lg:pt-0 border-t lg:border-t-0 border-border/60">
                             <span
                               className={`text-sm font-black font-display ${
                                 rank === 1 ? 'text-gold' : 'text-foreground'
@@ -3030,14 +3044,14 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                               {formatINR(b.total_spent)}
                             </span>
 
-                            <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-2 flex-wrap shrink-0">
                               <button
                                 type="button"
                                 onClick={() => {
                                   handleSaveSupportersToWebsite();
                                   success(`Supporter "${b.username}" verified and saved on website!`);
                                 }}
-                                className="px-2 py-1 rounded-lg bg-gold/15 border border-gold/30 text-[10px] font-extrabold text-gold hover:bg-gold/25 transition-colors flex items-center gap-1 cursor-pointer"
+                                className="px-2.5 py-1.5 rounded-lg bg-gold/15 border border-gold/30 text-xs font-extrabold text-gold hover:bg-gold/25 transition-colors flex items-center gap-1 cursor-pointer"
                                 title="Save supporter to website"
                               >
                                 <span>💾 Save</span>
@@ -3046,18 +3060,18 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                               <button
                                 type="button"
                                 onClick={() => handleEditSupporter(b)}
-                                className="p-1.5 rounded-lg border border-border bg-surface text-muted-foreground hover:text-gold hover:border-gold transition-colors cursor-pointer"
+                                className="p-2 rounded-lg border border-border bg-surface text-muted-foreground hover:text-gold hover:border-gold transition-colors cursor-pointer"
                                 title="Edit supporter"
                               >
-                                <Edit3 className="w-3.5 h-3.5" />
+                                <Edit3 className="w-4 h-4" />
                               </button>
                               <button
                                 type="button"
                                 onClick={() => handleDeleteSupporter(b)}
-                                className="p-1.5 rounded-lg border border-border bg-surface text-muted-foreground hover:text-red-400 hover:border-red-400 transition-colors cursor-pointer"
+                                className="p-2 rounded-lg border border-border bg-surface text-muted-foreground hover:text-red-400 hover:border-red-400 transition-colors cursor-pointer"
                                 title="Delete supporter"
                               >
-                                <Trash2 className="w-3.5 h-3.5" />
+                                <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
                           </div>
@@ -3683,7 +3697,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                           </div>
 
                           {/* Reorder Buttons (Move Up / Down / Top / Bottom) */}
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-1.5 flex-wrap">
                             <button
                               type="button"
                               disabled={isFirst}
@@ -3761,7 +3775,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                         <span className="text-[10px] text-muted-foreground font-mono">
                           ID: {item.id.slice(0, 10)}
                         </span>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <button
                             type="button"
                             onClick={() => handleOpenEditProduct(item)}
@@ -3995,7 +4009,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                             <span className="text-[10px] text-muted-foreground">
                               Created: {coupon.createdAt ? new Date(coupon.createdAt).toLocaleDateString('en-IN') : 'Default'}
                             </span>
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <button
                                 type="button"
                                 onClick={() => handleOpenEditCoupon(coupon)}
@@ -5167,7 +5181,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center gap-2 flex-wrap shrink-0">
                           <button
                             type="button"
                             onClick={() => handleTogglePinUpdate(upd.id)}
@@ -5343,7 +5357,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-2.5 self-end md:self-auto">
+                            <div className="flex items-center gap-2 flex-wrap self-end md:self-auto">
                               <a
                                 href={link.url}
                                 target="_blank"
@@ -5734,7 +5748,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                       </div>
 
                       {activeSession?.isOwner && (
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center gap-2 flex-wrap shrink-0">
                           <button
                             type="button"
                             onClick={() => handleOpenEditKey(k)}
@@ -6730,7 +6744,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                         </div>
 
                         {/* Category Actions */}
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <button
                             type="button"
                             onClick={() => handleOpenAddRule(cat.id)}
@@ -6771,7 +6785,7 @@ export const AdminPanelModal: React.FC<AdminPanelModalProps> = ({
                               </p>
                             </div>
 
-                            <div className="flex items-center justify-end gap-1.5 pt-2 border-t border-border/40">
+                            <div className="flex items-center justify-end gap-2 flex-wrap pt-2 border-t border-border/40">
                               <button
                                 type="button"
                                 onClick={() => handleOpenEditRule(cat.id, rule)}
